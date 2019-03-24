@@ -28,7 +28,7 @@
         "key": "gpu_mem_used",
         "unit": "MegaByte",
         "aggregation": "count",
-        "displayname": "Memory used"
+        "displayname": "GPU memory used"
       }
     },
     {
@@ -37,7 +37,7 @@
         "key": "gpu_mem_total",
         "unit": "MegaByte",
         "aggregation": "count",
-        "displayname":"Total available memory"
+        "displayname": "Total available GPU memory"
       }
     },
     {
@@ -46,7 +46,7 @@
         "key": "gpu_mem_used_by_pgi",
         "unit": "MegaByte",
         "aggregation": "count",
-        "displayname":"Memory used by process"
+        "displayname": "GPU memory used by the process"
       }
     },
     {
@@ -55,7 +55,7 @@
         "key": "gpu_utilization",
         "unit": "Percent",
         "aggregation": "count",
-        "displayname":"GPU utilization"
+        "displayname": "GPU utilization"
       },
       "alert_settings": [
         {
@@ -74,10 +74,10 @@
     {
       "entity": "PROCESS_GROUP_INSTANCE",
       "timeseries": {
-        "key": "memory_controller_utilization",
+        "key": "gpu_memory_controller_utilization",
         "unit": "Percent",
         "aggregation": "count",
-        "displayname":"Memory controller utilization"
+        "displayname": "GPU memory controller utilization"
       },
       "alert_settings": [
         {
@@ -96,10 +96,10 @@
     {
       "entity": "PROCESS_GROUP_INSTANCE",
       "timeseries": {
-        "key": "processes_count",
+        "key": "gpu_processes_count",
         "unit": "Count",
         "aggregation": "count",
-        "displayname":"Number of processes using the GPU"
+        "displayname": "Number of processes using the GPU"
       }
     }
   ],
@@ -142,7 +142,7 @@
             "seriestype": "line"
           },
           {
-           "key": "memory_controller_utilization",
+           "key": "gpu_memory_controller_utilization",
            "aggregation": "avg",
            "displayname": "Memory controller",
            "seriestype": "line"
@@ -154,7 +154,7 @@
         "title": "Number of processes using the GPU",
         "series": [
           {
-            "key": "processes_count",
+            "key": "gpu_processes_count",
             "aggregation": "avg",
             "displayname": "Processes",
             "seriestype": "bar"
