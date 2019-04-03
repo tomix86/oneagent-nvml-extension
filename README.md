@@ -8,7 +8,7 @@ The project is released under the [MIT License](LICENSE).
 # Intro
 
 A [Dynatrace OneAgent](https://www.dynatrace.com/support/help/) plugin for gathering NVIDIA GPU metrics using [NVIDIA Management Library (NVML)](https://docs.nvidia.com/deploy/nvml-api/),
-implementation leverages [python bindings for NVML](https://pypi.org/project/nvidia-ml-py3/)
+implementation leverages [python bindings for NVML](https://pypi.org/project/nvidia-ml-py3/).
 
 The plugin is capable of monitoring multiple GPUs, the metrics coming from all the devices will be aggregated and send as combined timeseries.
 There is no support for sending separate timeseries per device.
@@ -27,6 +27,7 @@ Hence, it is advised to not use `detect_pgis_using_gpu` option, but instead spec
 * Device of Fermi or newer architecture.
 * No requirements on CUDA version.
 * For plugin development: [OneAgent Plugin SDK v1.167 or newer](https://dynatrace.github.io/plugin-sdk/index.html).
+* Python >= 3.6
 
 # Plugin configuration:
 * `enable_debug_log` - enables debug logging for troubleshooting purposes,
@@ -45,8 +46,8 @@ The table below outlines metrics collected by the plugin. *Figure 1* shows an ex
 | gpu_mem_total                     | HOST   | Total available global memory |
 | gpu_mem_used                      | HOST   | Device (global) memory usage |
 | gpu_mem_used_by_pgi               | PGI    | Global memory usage per process |
-| gpu_utilization                   | HOST   | Percent of time over the past sample period (within CUDA driver) during which one or more kernels was executing on the GPU           |
-| gpu_memory_controller_utilization | HOST   | Percent of time over the past sample period (within CUDA driver) during which global memory was being read from or written to           |
+| gpu_utilization                   | HOST   | Percent of time over the past sample period (within CUDA driver) during which one or more kernels was executing on the GPU |
+| gpu_memory_controller_utilization | HOST   | Percent of time over the past sample period (within CUDA driver) during which global memory was being read from or written to |
 | gpu_processes_count               | HOST   | Number of processes making use of the GPU |
 
 Note that differentiation between entity types is only conceptual, all the metrics are sent per-PGI due to aforementioned limitations of Plugin SDK.

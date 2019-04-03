@@ -1,8 +1,10 @@
+from time import sleep
+from typing import Dict, Tuple, List, KeysView
+
 from pynvml import *
 from ruxit.api.base_plugin import BasePlugin
 from ruxit.api.exceptions import ConfigException
-from time import sleep
-from typing import Dict, Tuple, List, KeysView
+
 from utilities.constants import DeviceHandle, MiB, GPUProcesses, MemUsage, Pid, SAMPLES_COUNT, SAMPLING_INTERVAL
 from utilities.utilities import DeviceUtilizationRates, nvml_error_to_string, get_average, get_bool_param, add_ignoring_none, get_int_param
 
@@ -35,14 +37,14 @@ class NVMLPlugin(BasePlugin):
         return DeviceUtilizationRates(total, used, utilization_gpu, utilization_memory)
 
     def set_results(self, pgi_id: int, aggregated_mem_usage: MemUsage, utilization_rates: DeviceUtilizationRates, gpu_processes_count: int) -> None:
-        self.results_builder.absolute(key='gpu_mem_used', value=utilization_rates.memory_used, entity_id=pgi_id)
-        self.results_builder.absolute(key='gpu_mem_total', value=utilization_rates.memory_total, entity_id=pgi_id)
-        self.results_builder.absolute(key='gpu_utilization', value=utilization_rates.gpu, entity_id=pgi_id)
-        self.results_builder.absolute(key='memory_controller_utilization', value=utilization_rates.memory_controller, entity_id=pgi_id)
-        self.results_builder.absolute(key='processes_count', value=gpu_processes_count, entity_id=pgi_id)
+        self.results_builder.absolute(key="gpu_mem_used", value=utilization_rates.memory_used, entity_id=pgi_id)
+        self.results_builder.absolute(key="gpu_mem_total", value=utilization_rates.memory_total, entity_id=pgi_id)
+        self.results_builder.absolute(key="gpu_utilization", value=utilization_rates.gpu, entity_id=pgi_id)
+        self.results_builder.absolute(key="gpu_memory_controller_utilization", value=utilization_rates.memory_controller, entity_id=pgi_id)
+        self.results_builder.absolute(key="gpu_processes_count", value=gpu_processes_count, entity_id=pgi_id)
 
         if aggregated_mem_usage is not None:
-            self.results_builder.absolute(key='gpu_mem_used_by_pgi', value=aggregated_mem_usage, entity_id=pgi_id)
+            self.results_builder.absolute(key="gpu_mem_used_by_pgi", value=aggregated_mem_usage, entity_id=pgi_id)
         else:  # Note: if we don't send these metrics it won't appear on the WebUI, this is expected (otherwise we would display a timeseries that does not make any sense)
             self.log_debug(f"Skipping gpu_mem_used_by_pgi metric for PGIID={pgi_id:02x} as the memory reading is empty")
 
@@ -85,7 +87,7 @@ class NVMLPlugin(BasePlugin):
             for idx in range(0, len(data_for_devices)):
                 previous = data_for_devices[idx]
                 current = new_sample[idx]
-                # We're only interested in processes which appear in all the samples
+                # We're only interested in processes that appear in all the samples
                 processes_info = {k: v for k, v in previous[0].items() if k in current[0]}
                 for pid in processes_info:
                     if processes_info[pid] is None:
@@ -146,11 +148,11 @@ class NVMLPlugin(BasePlugin):
             self.logger.info(f"Sending metrics for '{pgi.group_name}' process group (PGIID={pgi_id:02x}, type={pgi.process_type})")
             self.set_results(pgi_id, aggregated_mem_usage, utilization_rates, gpu_processes_count)
 
-    def detect_devices(self):
+    def detect_devices(self) -> None:
         self.devices_count = nvmlDeviceGetCount()
         for i in range(self.devices_count):
             handle = nvmlDeviceGetHandleByIndex(i)
-            device_name = nvmlDeviceGetName(handle).decode('UTF-8')
+            device_name = nvmlDeviceGetName(handle).decode("UTF-8")
             self.logger.info(f"Device nr. {i}: '{device_name}'")
 
     def aggregate_data_from_multiple_devices(self, data: List[Tuple[GPUProcesses, DeviceUtilizationRates]]) -> Tuple[GPUProcesses, DeviceUtilizationRates]:
@@ -167,7 +169,7 @@ class NVMLPlugin(BasePlugin):
         self.log_debug(f"Aggregated device data: {utilization_rates}, processes count: {len(gpu_processes_mem_usage)}")
         return gpu_processes_mem_usage, utilization_rates
 
-    def raise_high_memory_usage_alert_if_needed(self, utilization_rates: DeviceUtilizationRates, threshold: int):
+    def raise_high_memory_usage_alert_if_needed(self, utilization_rates: DeviceUtilizationRates, threshold: int) -> None:
         # TODO: needs proper de-alerting
         percentage_used = utilization_rates.memory_used / utilization_rates.memory_total
         if percentage_used * 100 > threshold:
@@ -175,29 +177,29 @@ class NVMLPlugin(BasePlugin):
             self.log_debug(f"Sending alert: {description}")
             self.results_builder.report_performance_event(description, "High GPU memory utilization")
 
-    def validate_high_memory_alert_threshold(self, threshold: int):
+    def validate_high_memory_alert_threshold(self, threshold: int) -> None:
         if threshold <= 0 or threshold > 100:
             raise ConfigException(f"Invalid threshold value: {threshold}%")
         self.log_debug(f"Configured high memory alert threshold value: {threshold}%")
 
-    def initialize(self, **kwargs):
+    def initialize(self, **kwargs) -> None:
         try:
             nvmlInit()
-            driver_version = nvmlSystemGetDriverVersion().decode('UTF-8')
-            nvml_version = nvmlSystemGetNVMLVersion().decode('UTF-8')
+            driver_version = nvmlSystemGetDriverVersion().decode("UTF-8")
+            nvml_version = nvmlSystemGetNVMLVersion().decode("UTF-8")
             self.logger.info(f"NVML initialized, driver version: {driver_version}, NVML version: {nvml_version}")
             self.detect_devices()
         except NVMLError as error:
             self.raise_nvml_error(error)
 
-    def close(self, **kwargs):
+    def close(self, **kwargs) -> None:
         try:
             nvmlShutdown()
             self.logger.info(f"NVML shut down")
         except NVMLError as error:
             self.raise_nvml_error(error)
 
-    def query(self, **kwargs):
+    def query(self, **kwargs) -> None:
         config = kwargs["config"]
         self.enable_debug_log = get_bool_param(config, "enable_debug_log")
 

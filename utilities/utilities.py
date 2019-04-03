@@ -1,6 +1,7 @@
+from typing import NamedTuple, Optional, Any, Mapping
+
 from pynvml import NVMLError, NVML_ERROR_NOT_SUPPORTED, NVML_ERROR_NO_PERMISSION
 from ruxit.api.exceptions import ConfigException
-from typing import NamedTuple, Optional
 
 
 class DeviceUtilizationRates(NamedTuple):
@@ -9,14 +10,14 @@ class DeviceUtilizationRates(NamedTuple):
     gpu: float
     memory_controller: float
 
-    def __add__(self, other):
+    def __add__(self, other: "DeviceUtilizationRates") -> "DeviceUtilizationRates":
         memory_total = self.memory_total + other.memory_total
         memory_used = self.memory_used + other.memory_used
         gpu = self.gpu + other.gpu
         memory_controller = self.memory_controller + other.memory_controller
         return DeviceUtilizationRates(memory_total, memory_used, gpu, memory_controller)
 
-    def divide_rates(self, divisor):
+    def divide_rates(self, divisor: float) -> "DeviceUtilizationRates":
         gpu = self.gpu / divisor
         memory_controller = self.memory_controller / divisor
         return DeviceUtilizationRates(self.memory_total, self.memory_used, gpu, memory_controller)
@@ -52,7 +53,7 @@ def get_bool_param(config, key: str) -> bool:
         raise ConfigException(f"value \"{value}\" specified for {key} is not a valid boolean")
 
 
-def get_int_param(config, key: str) -> int:
+def get_int_param(config: Mapping[str, Any], key: str) -> int:
     # TODO: same as for get_bool_param()
     value = str(config[key])
     try:
