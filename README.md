@@ -90,7 +90,7 @@ _Fig 2. High GPU utilization alert as seen on metrics screen_
 Note that _High GPU memory utilization_ alert is based on two separate metrics (`gpu_mem_used` and `gpu_mem_total`). Due to current custom plugins limitations, it is not possible to define such server-side alert without introducing an artificial metric combining the other two.
 The alert could be reported by the plugin directly via [`results_builder.report_performance_event()`](https://dynatrace.github.io/plugin-sdk/_apidoc/ruxit.api.html#ruxit.api.results_builder.ResultsBuilder.report_performance_event),
 but then it wouldn't be connected to a particular metric (from server's perspective) and wouldn't be marked on the respective chart, it would only appear on the host screen.
-Thus, an artificial metric metric, that is hidden on the _Memory usage_ chart, representing percentage usage of the GPU memory had to be introduced.
+Thus, an artificial metric, that is hidden on the _Memory usage_ chart, representing percentage usage of the GPU memory had to be introduced.
 
 
 # Acknowledgements
