@@ -52,6 +52,28 @@
     {
       "entity": "PROCESS_GROUP_INSTANCE",
       "timeseries": {
+        "key": "gpu_mem_percentage_used",
+        "unit": "Percent",
+        "aggregation": "count",
+        "displayname": "Percentage usage of the GPU memory"
+      },
+      "alert_settings": [
+        {
+          "alert_id": "high_gpu_memory_utilization_alert",
+          "event_type": "PERFORMANCE_EVENT",
+          "event_name": "High GPU memory utilization",
+          "description": "GPU memory usage of {severity} is {alert_condition} the threshold of {threshold}",
+          "threshold": 90.0,
+          "alert_condition": "ABOVE",
+          "samples": 5,
+          "violating_samples": 3,
+          "dealerting_samples": 5
+        }
+      ]
+    },
+    {
+      "entity": "PROCESS_GROUP_INSTANCE",
+      "timeseries": {
         "key": "gpu_utilization",
         "unit": "Percent",
         "aggregation": "count",
@@ -81,7 +103,7 @@
       },
       "alert_settings": [
         {
-          "alert_id": "high_gpu_memory_utilization_alert",
+          "alert_id": "high_gpu_memory_controller_utilization_alert",
           "event_type": "PERFORMANCE_EVENT",
           "event_name": "High GPU memory controller utilization",
           "description": "{metricname} of {severity} is {alert_condition} the threshold of {threshold}",
@@ -128,6 +150,14 @@
             "aggregation": "avg",
             "displayname": "Process",
             "seriestype": "area"
+          },
+          {
+            "key": "gpu_mem_percentage_used",
+            "aggregation": "avg",
+            "displayname": "% used (hidden)",
+            "seriestype": "line",
+            "rightaxis": true,
+            "color": "rgba(0,0,0,0)"
           }
         ]
       },
@@ -183,12 +213,6 @@
         "displayName": "Enable debug logging",
         "displayOrder": 3,
         "displayHint": "true / false"
-      },
-      {
-        "key" : "high_memory_alert_threshold",
-        "displayName": "Percentage threshold for raising high GPU memory usage alert",
-        "displayOrder": 4,
-        "displayHint": "(0, 100>"
       }
     ]
   },
@@ -207,11 +231,6 @@
       "key": "monitored_pg_names",
       "type": "string",
       "defaultValue": ""
-    },
-    {
-      "key": "high_memory_alert_threshold",
-      "type": "string",
-      "defaultValue": "90"
     }
   ]
 }

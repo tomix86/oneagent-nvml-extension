@@ -53,15 +53,6 @@ def get_bool_param(config, key: str) -> bool:
         raise ConfigException(f"value \"{value}\" specified for {key} is not a valid boolean")
 
 
-def get_int_param(config: Mapping[str, Any], key: str) -> int:
-    # TODO: same as for get_bool_param()
-    value = str(config[key])
-    try:
-        return int(value)
-    except ValueError:
-        raise ConfigException(f"value \"{value}\" specified for {key} is not a valid integer")
-
-
 def get_average(average: float, new_sample: float, sample_number: int) -> float:
     # Compute average on the fly
     return average + (new_sample - average) / sample_number

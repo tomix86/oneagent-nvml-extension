@@ -1,12 +1,12 @@
 from time import sleep
-from typing import Dict, Tuple, List, KeysView
+from typing import Dict, Tuple, List, KeysView, Any
 
 from pynvml import *
 from ruxit.api.base_plugin import BasePlugin
 from ruxit.api.exceptions import ConfigException
 
 from utilities.constants import DeviceHandle, MiB, GPUProcesses, MemUsage, Pid, SAMPLES_COUNT, SAMPLING_INTERVAL
-from utilities.utilities import DeviceUtilizationRates, nvml_error_to_string, get_average, get_bool_param, add_ignoring_none, get_int_param
+from utilities.utilities import DeviceUtilizationRates, nvml_error_to_string, get_average, get_bool_param, add_ignoring_none
 
 """
 For documentation see README.md
@@ -37,11 +37,15 @@ class NVMLPlugin(BasePlugin):
         return DeviceUtilizationRates(total, used, utilization_gpu, utilization_memory)
 
     def set_results(self, pgi_id: int, aggregated_mem_usage: MemUsage, utilization_rates: DeviceUtilizationRates, gpu_processes_count: int) -> None:
-        self.results_builder.absolute(key="gpu_mem_used", value=utilization_rates.memory_used, entity_id=pgi_id)
-        self.results_builder.absolute(key="gpu_mem_total", value=utilization_rates.memory_total, entity_id=pgi_id)
-        self.results_builder.absolute(key="gpu_utilization", value=utilization_rates.gpu, entity_id=pgi_id)
-        self.results_builder.absolute(key="gpu_memory_controller_utilization", value=utilization_rates.memory_controller, entity_id=pgi_id)
-        self.results_builder.absolute(key="gpu_processes_count", value=gpu_processes_count, entity_id=pgi_id)
+        def set_result(key: str, value: Any):
+            self.results_builder.absolute(key=key, value=value, entity_id=pgi_id)
+
+        set_result("gpu_mem_used", utilization_rates.memory_used)
+        set_result("gpu_mem_total", utilization_rates.memory_total)
+        set_result("gpu_mem_percentage_used", 100 * utilization_rates.memory_used / utilization_rates.memory_total)
+        set_result("gpu_utilization", utilization_rates.gpu)
+        set_result("gpu_memory_controller_utilization", utilization_rates.memory_controller)
+        set_result("gpu_processes_count", gpu_processes_count)
 
         if aggregated_mem_usage is not None:
             self.results_builder.absolute(key="gpu_mem_used_by_pgi", value=aggregated_mem_usage, entity_id=pgi_id)
@@ -104,7 +108,8 @@ class NVMLPlugin(BasePlugin):
 
         for device_data in data_for_devices:
             self.log_debug(f"Device info:")
-            self.log_debug(f"...Memory usage [MiB]: {device_data[1].memory_used:.2f} / {device_data[1].memory_total:.0f}")
+            percentage_used = device_data[1].memory_used / device_data[1].memory_total
+            self.log_debug(f"...Memory usage [MiB]: {device_data[1].memory_used:.2f} / {device_data[1].memory_total:.0f} ({percentage_used:.0%})")
             self.log_debug(f"...GPU utilization: {device_data[1].gpu}%")
             self.log_debug(f"...Memory controller utilization: {device_data[1].memory_controller}%")
             self.log_debug(f"...Number of processes using the GPU: {len(device_data[0])}")
@@ -169,19 +174,6 @@ class NVMLPlugin(BasePlugin):
         self.log_debug(f"Aggregated device data: {utilization_rates}, processes count: {len(gpu_processes_mem_usage)}")
         return gpu_processes_mem_usage, utilization_rates
 
-    def raise_high_memory_usage_alert_if_needed(self, utilization_rates: DeviceUtilizationRates, threshold: int) -> None:
-        # TODO: needs proper de-alerting
-        percentage_used = utilization_rates.memory_used / utilization_rates.memory_total
-        if percentage_used * 100 > threshold:
-            description = f"GPU memory usage of {percentage_used:.0%} is above the threshold of {threshold}%"
-            self.log_debug(f"Sending alert: {description}")
-            self.results_builder.report_performance_event(description, "High GPU memory utilization")
-
-    def validate_high_memory_alert_threshold(self, threshold: int) -> None:
-        if threshold <= 0 or threshold > 100:
-            raise ConfigException(f"Invalid threshold value: {threshold}%")
-        self.log_debug(f"Configured high memory alert threshold value: {threshold}%")
-
     def initialize(self, **kwargs) -> None:
         try:
             nvmlInit()
@@ -207,13 +199,9 @@ class NVMLPlugin(BasePlugin):
         monitored_pg_names = config["monitored_pg_names"].split(",")
         self.log_debug(f"detect_pgis_using_gpu={detect_pgis_using_gpu}, monitored_pg_names={monitored_pg_names}")
 
-        high_memory_alert_threshold = get_int_param(config, "high_memory_alert_threshold")
-        self.validate_high_memory_alert_threshold(high_memory_alert_threshold)
-
         try:
             data_for_devices = self.get_gpus_info()
             gpu_processes_mem_usage, utilization_rates = self.aggregate_data_from_multiple_devices(data_for_devices)
-            self.raise_high_memory_usage_alert_if_needed(utilization_rates, high_memory_alert_threshold)
             monitored_pgis = self.get_monitored_pgis_list(gpu_processes_mem_usage.keys(), detect_pgis_using_gpu, monitored_pg_names)
             self.generate_metrics_for_pgis(gpu_processes_mem_usage, utilization_rates, monitored_pgis)
         except NVMLError as error:
