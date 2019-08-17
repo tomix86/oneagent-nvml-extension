@@ -1,0 +1,236 @@
+{
+  "version": "1.0",
+  "name": "custom.python.nvml_plugin",
+  "type": "python",
+  "entity": "HOST",
+  "processTypeNames": [
+    "UNKNOWN",
+    "LINUX_SYSTEM",
+    "WINDOWS_SYSTEM",
+    "JAVA",
+    "DOTNET",
+    "RUBY",
+    "PERL",
+    "NODE_JS",
+    "PYTHON",
+    "GO"
+  ],
+  "source": {
+    "package": "nvml_plugin",
+    "className": "NVMLPlugin",
+    "install_requires": [ "nvidia-ml-py3>=7.352.0" ],
+    "activation": "Singleton"
+  },
+  "metrics": [
+    {
+      "entity": "PROCESS_GROUP_INSTANCE",
+      "timeseries": {
+        "key": "gpu_mem_used",
+        "unit": "MegaByte",
+        "aggregation": "count",
+        "displayname": "GPU memory used"
+      }
+    },
+    {
+      "entity": "PROCESS_GROUP_INSTANCE",
+      "timeseries": {
+        "key": "gpu_mem_total",
+        "unit": "MegaByte",
+        "aggregation": "count",
+        "displayname": "Total available GPU memory"
+      }
+    },
+    {
+      "entity": "PROCESS_GROUP_INSTANCE",
+      "timeseries": {
+        "key": "gpu_mem_used_by_pgi",
+        "unit": "MegaByte",
+        "aggregation": "count",
+        "displayname": "GPU memory used by the process"
+      }
+    },
+    {
+      "entity": "PROCESS_GROUP_INSTANCE",
+      "timeseries": {
+        "key": "gpu_mem_percentage_used",
+        "unit": "Percent",
+        "aggregation": "count",
+        "displayname": "Percentage usage of the GPU memory"
+      },
+      "alert_settings": [
+        {
+          "alert_id": "high_gpu_memory_utilization_alert",
+          "event_type": "PERFORMANCE_EVENT",
+          "event_name": "High GPU memory utilization",
+          "description": "GPU memory usage of {severity} is {alert_condition} the threshold of {threshold}",
+          "threshold": 90.0,
+          "alert_condition": "ABOVE",
+          "samples": 5,
+          "violating_samples": 3,
+          "dealerting_samples": 5
+        }
+      ]
+    },
+    {
+      "entity": "PROCESS_GROUP_INSTANCE",
+      "timeseries": {
+        "key": "gpu_utilization",
+        "unit": "Percent",
+        "aggregation": "count",
+        "displayname": "GPU utilization"
+      },
+      "alert_settings": [
+        {
+          "alert_id": "high_gpu_utilization_alert",
+          "event_type": "PERFORMANCE_EVENT",
+          "event_name": "High GPU utilization",
+          "description": "{metricname} of {severity} is {alert_condition} the threshold of {threshold}",
+          "threshold": 90.0,
+          "alert_condition": "ABOVE",
+          "samples": 5,
+          "violating_samples": 3,
+          "dealerting_samples": 5
+        }
+      ]
+    },
+    {
+      "entity": "PROCESS_GROUP_INSTANCE",
+      "timeseries": {
+        "key": "gpu_memory_controller_utilization",
+        "unit": "Percent",
+        "aggregation": "count",
+        "displayname": "GPU memory controller utilization"
+      },
+      "alert_settings": [
+        {
+          "alert_id": "high_gpu_memory_controller_utilization_alert",
+          "event_type": "PERFORMANCE_EVENT",
+          "event_name": "High GPU memory controller utilization",
+          "description": "{metricname} of {severity} is {alert_condition} the threshold of {threshold}",
+          "threshold": 90.0,
+          "alert_condition": "ABOVE",
+          "samples": 5,
+          "violating_samples": 3,
+          "dealerting_samples": 5
+        }
+      ]
+    },
+    {
+      "entity": "PROCESS_GROUP_INSTANCE",
+      "timeseries": {
+        "key": "gpu_processes_count",
+        "unit": "Count",
+        "aggregation": "count",
+        "displayname": "Number of processes using the GPU"
+      }
+    }
+  ],
+  "ui": {
+    "keymetrics": [],
+    "keycharts": [],
+    "charts": [
+      {
+        "group": "GPU metrics",
+        "title": "Memory usage",
+        "series": [
+          {
+            "key": "gpu_mem_used",
+            "aggregation": "avg",
+            "displayname": "Used",
+            "seriestype": "area"
+          },
+          {
+            "key": "gpu_mem_total",
+            "aggregation": "avg",
+            "displayname": "Total",
+            "seriestype": "line"
+          },
+          {
+            "key": "gpu_mem_used_by_pgi",
+            "aggregation": "avg",
+            "displayname": "Process",
+            "seriestype": "area"
+          },
+          {
+            "key": "gpu_mem_percentage_used",
+            "aggregation": "avg",
+            "displayname": "% used (hidden)",
+            "seriestype": "line",
+            "rightaxis": true,
+            "color": "rgba(0,0,0,0)"
+          }
+        ]
+      },
+      {
+        "group": "GPU metrics",
+        "title": "Subsystems utilization",
+        "series": [
+          {
+            "key": "gpu_utilization",
+            "aggregation": "avg",
+            "displayname": "GPU",
+            "seriestype": "line"
+          },
+          {
+           "key": "gpu_memory_controller_utilization",
+           "aggregation": "avg",
+           "displayname": "Memory controller",
+           "seriestype": "line"
+          }
+        ]
+      },
+      {
+        "group": "GPU metrics",
+        "title": "Number of processes using the GPU",
+        "series": [
+          {
+            "key": "gpu_processes_count",
+            "aggregation": "avg",
+            "displayname": "Processes",
+            "seriestype": "bar"
+          }
+        ]
+      }
+    ]
+  },
+  "configUI": {
+    "displayName": "OneAgent NVML Plugin",
+    "properties" : [
+      {
+        "key" : "detect_pgis_using_gpu",
+        "displayName": "Automatically detect and monitor all processes that use the GPU",
+        "displayOrder": 1,
+        "displayHint": "true / false"
+      },
+      {
+        "key" : "monitored_pg_names",
+        "displayName": "Names of process groups that should be monitored",
+        "displayOrder": 2,
+        "displayHint": "CUDA app,blockchain_processor[,...]"
+      },
+      {
+        "key" : "enable_debug_log",
+        "displayName": "Enable debug logging",
+        "displayOrder": 3,
+        "displayHint": "true / false"
+      }
+    ]
+  },
+  "properties": [
+    {
+      "key": "enable_debug_log",
+      "type": "string",
+      "defaultValue": "false"
+    },
+    {
+      "key": "detect_pgis_using_gpu",
+      "type": "string",
+      "defaultValue": "false"
+    },
+    {
+      "key": "monitored_pg_names",
+      "type": "string",
+      "defaultValue": ""
+    }
+  ]
+}
