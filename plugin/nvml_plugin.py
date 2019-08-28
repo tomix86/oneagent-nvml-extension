@@ -8,7 +8,7 @@ from ruxit.api.selectors import ExplicitPgiSelector
 from ruxit.api.exceptions import ConfigException
 
 from utilities.constants import DeviceHandle, MiB, GPUProcesses, MemUsage, Pid, SAMPLES_COUNT, SAMPLING_INTERVAL
-from utilities.utilities import DeviceUtilizationRates, nvml_error_to_string, get_average, get_bool_param, add_ignoring_none
+from utilities.utilities import DeviceUtilizationRates, nvml_error_to_string, get_average, add_ignoring_none
 
 """
 For documentation see README.md
@@ -200,7 +200,7 @@ class NVMLPlugin(BasePlugin):
 
     def query(self, **kwargs) -> None:
         config = kwargs["config"]
-        self.enable_debug_log = get_bool_param(config, "enable_debug_log")
+        self.enable_debug_log = config["enable_debug_log"]
 
         try:
             data_for_devices = self.get_gpus_info()

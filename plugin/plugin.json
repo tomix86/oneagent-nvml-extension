@@ -253,16 +253,15 @@
       {
         "key" : "enable_debug_log",
         "displayName": "Enable debug logging",
-        "displayOrder": 3,
-        "displayHint": "true / false"
+        "displayOrder": 1
       }
     ]
   },
   "properties": [
     {
       "key": "enable_debug_log",
-      "type": "string",
-      "defaultValue": "false"
+      "type": "boolean",
+      "defaultValue": false
     }
   ]
 }

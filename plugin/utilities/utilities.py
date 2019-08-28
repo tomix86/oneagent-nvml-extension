@@ -1,8 +1,6 @@
-from typing import NamedTuple, Optional, Any, Mapping
+from typing import NamedTuple, Optional
 
 from pynvml import NVMLError, NVML_ERROR_NOT_SUPPORTED, NVML_ERROR_NO_PERMISSION
-from ruxit.api.exceptions import ConfigException
-
 
 class DeviceUtilizationRates(NamedTuple):
     memory_total: float
@@ -39,18 +37,6 @@ def add_ignoring_none(a: Optional[float], b: Optional[float]) -> float:
         return a
     else:
         return a + b
-
-
-def get_bool_param(config, key: str) -> bool:
-    # TODO: in plugin.json the type is specified as 'String' not 'boolean', remove workaround once APM-168456 is fixed
-    # TODO: a workaround until APM-165439 is fixed
-    value = str(config[key]).lower()
-    if value == "true":
-        return True
-    elif value == "false":
-        return False
-    else:
-        raise ConfigException(f"value \"{value}\" specified for {key} is not a valid boolean")
 
 
 def get_average(average: float, new_sample: float, sample_number: int) -> float:
