@@ -3,6 +3,8 @@ from typing import Dict, Tuple, List, KeysView, Any
 
 from pynvml import *
 from ruxit.api.base_plugin import BasePlugin
+from ruxit.api.data import PluginMeasurement
+from ruxit.api.selectors import ExplicitPgiSelector
 from ruxit.api.exceptions import ConfigException
 
 from utilities.constants import DeviceHandle, MiB, GPUProcesses, MemUsage, Pid, SAMPLES_COUNT, SAMPLING_INTERVAL
@@ -36,9 +38,9 @@ class NVMLPlugin(BasePlugin):
         self.log_debug(f"Sampled utilization rates: {used:.2f} MiB, {utilization_gpu}%, {utilization_memory}%")
         return DeviceUtilizationRates(total, used, utilization_gpu, utilization_memory)
 
-    def set_results(self, pgi_id: int, aggregated_mem_usage: MemUsage, utilization_rates: DeviceUtilizationRates, gpu_processes_count: int) -> None:
+    def set_host_results(self, utilization_rates: DeviceUtilizationRates, gpu_processes_count: int) -> None:
         def set_result(key: str, value: Any):
-            self.results_builder.absolute(key=key, value=value, entity_id=pgi_id)
+            self.results_builder.add_absolute_result(PluginMeasurement(key=key, value=value))
 
         set_result("gpu_mem_used", utilization_rates.memory_used)
         set_result("gpu_mem_total", utilization_rates.memory_total)
@@ -47,8 +49,10 @@ class NVMLPlugin(BasePlugin):
         set_result("gpu_memory_controller_utilization", utilization_rates.memory_controller)
         set_result("gpu_processes_count", gpu_processes_count)
 
+    def set_pgi_results(self, pgi_id: int, aggregated_mem_usage: MemUsage) -> None:
         if aggregated_mem_usage is not None:
-            self.results_builder.absolute(key="gpu_mem_used_by_pgi", value=aggregated_mem_usage, entity_id=pgi_id)
+            measurement = PluginMeasurement(key="gpu_mem_used_by_pgi", value=aggregated_mem_usage, entity_selector=ExplicitPgiSelector(pgi_id))
+            self.results_builder.add_absolute_result(measurement)
         else:  # Note: if we don't send these metrics it won't appear on the WebUI, this is expected (otherwise we would display a timeseries that does not make any sense)
             self.log_debug(f"Skipping gpu_mem_used_by_pgi metric for PGIID={pgi_id:02x} as the memory reading is empty")
 
@@ -116,18 +120,17 @@ class NVMLPlugin(BasePlugin):
             self.log_debug(f"...PIDs and memory usage of processes using the GPU: {device_data[0]}")
         return data_for_devices
 
-    def get_monitored_pgis_list(self, gpu_processes: KeysView[Pid], detect_pgis_using_gpu: bool, monitored_pg_names: List[str]) -> Dict[int, object]:
-        monitored_pgis = self.find_all_process_groups(lambda group: group.group_name in monitored_pg_names)
+    def get_monitored_pgis_list(self, gpu_processes: KeysView[Pid]) -> Dict[int, object]:
+        monitored_pgis = []
 
-        if detect_pgis_using_gpu:
-            pgi_list = self.find_all_processes(lambda process: process.pid in gpu_processes)
-            for entry in pgi_list:
-                pgi = entry[0]
-                pid = entry[1].pid
-                name = entry[1].process_name
-                self.log_debug(f"{name} (pid: {pid}) from {pgi.group_name} process group"
-                               f"(PGIID={pgi.group_instance_id:02x}, type={pgi.process_type}) is using the GPU")
-                monitored_pgis.append(pgi)
+        pgi_list = self.find_all_processes(lambda process: process.pid in gpu_processes)
+        for entry in pgi_list:
+            pgi = entry[0]
+            pid = entry[1].pid
+            name = entry[1].process_name
+            self.log_debug(f"{name} (pid: {pid}) from {pgi.group_name} process group"
+                           f"(PGIID={pgi.group_instance_id:02x}, type={pgi.process_type}) is using the GPU")
+            monitored_pgis.append(pgi)
 
         unique_pgis = {}
         for pgi in monitored_pgis:
@@ -137,6 +140,10 @@ class NVMLPlugin(BasePlugin):
 
     def generate_metrics_for_pgis(self, gpu_processes_mem_usage: GPUProcesses, utilization_rates: DeviceUtilizationRates, monitored_pgis: Dict) -> None:
         gpu_processes_count = len(gpu_processes_mem_usage)
+
+        self.logger.info(f"Sending host metrics")
+        self.set_host_results(utilization_rates, gpu_processes_count)
+
         for pgi in monitored_pgis.values():
             self.log_debug(f"Processing '{pgi.group_name}' process group...")
             aggregated_mem_usage = None
@@ -151,7 +158,7 @@ class NVMLPlugin(BasePlugin):
             pgi_id = pgi.group_instance_id
             self.log_debug(f"GPU mem usage [MiB] for PGIID={pgi_id:02x}: '{aggregated_mem_usage}'")
             self.logger.info(f"Sending metrics for '{pgi.group_name}' process group (PGIID={pgi_id:02x}, type={pgi.process_type})")
-            self.set_results(pgi_id, aggregated_mem_usage, utilization_rates, gpu_processes_count)
+            self.set_pgi_results(pgi_id, aggregated_mem_usage)
 
     def detect_devices(self) -> None:
         self.devices_count = nvmlDeviceGetCount()
@@ -195,14 +202,10 @@ class NVMLPlugin(BasePlugin):
         config = kwargs["config"]
         self.enable_debug_log = get_bool_param(config, "enable_debug_log")
 
-        detect_pgis_using_gpu = get_bool_param(config, "detect_pgis_using_gpu")
-        monitored_pg_names = config["monitored_pg_names"].split(",")
-        self.log_debug(f"detect_pgis_using_gpu={detect_pgis_using_gpu}, monitored_pg_names={monitored_pg_names}")
-
         try:
             data_for_devices = self.get_gpus_info()
             gpu_processes_mem_usage, utilization_rates = self.aggregate_data_from_multiple_devices(data_for_devices)
-            monitored_pgis = self.get_monitored_pgis_list(gpu_processes_mem_usage.keys(), detect_pgis_using_gpu, monitored_pg_names)
+            monitored_pgis = self.get_monitored_pgis_list(gpu_processes_mem_usage.keys())
             self.generate_metrics_for_pgis(gpu_processes_mem_usage, utilization_rates, monitored_pgis)
         except NVMLError as error:
             self.raise_nvml_error(error)

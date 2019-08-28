@@ -1,8 +1,10 @@
 {
-  "version": "1.0",
+  "version": "1.1.0",
   "name": "custom.python.nvml_plugin",
   "type": "python",
+  "requiredAgentVersion": "1.175",
   "entity": "HOST",
+  "metricGroup": "gpu.cuda",
   "processTypeNames": [
     "UNKNOWN",
     "LINUX_SYSTEM",
@@ -23,7 +25,6 @@
   },
   "metrics": [
     {
-      "entity": "PROCESS_GROUP_INSTANCE",
       "timeseries": {
         "key": "gpu_mem_used",
         "unit": "MegaByte",
@@ -32,7 +33,6 @@
       }
     },
     {
-      "entity": "PROCESS_GROUP_INSTANCE",
       "timeseries": {
         "key": "gpu_mem_total",
         "unit": "MegaByte",
@@ -50,7 +50,6 @@
       }
     },
     {
-      "entity": "PROCESS_GROUP_INSTANCE",
       "timeseries": {
         "key": "gpu_mem_percentage_used",
         "unit": "Percent",
@@ -72,7 +71,6 @@
       ]
     },
     {
-      "entity": "PROCESS_GROUP_INSTANCE",
       "timeseries": {
         "key": "gpu_utilization",
         "unit": "Percent",
@@ -94,7 +92,6 @@
       ]
     },
     {
-      "entity": "PROCESS_GROUP_INSTANCE",
       "timeseries": {
         "key": "gpu_memory_controller_utilization",
         "unit": "Percent",
@@ -116,7 +113,6 @@
       ]
     },
     {
-      "entity": "PROCESS_GROUP_INSTANCE",
       "timeseries": {
         "key": "gpu_processes_count",
         "unit": "Count",
@@ -126,11 +122,69 @@
     }
   ],
   "ui": {
-    "keymetrics": [],
-    "keycharts": [],
+    "keymetrics": [
+      {
+        "key": "gpu_utilization",
+        "displayname": "GPU",
+        "aggregation": "avg",
+		"mergeaggregation": "avg"
+      },
+      {
+        "key": "gpu_mem_used",
+        "displayname": "GPU Memory",
+        "aggregation": "avg",
+        "mergeaggregation": "avg"
+      }
+    ],
+    "keycharts": [
+      {
+        "group": "GPU Metrics",
+        "title": "Memory usage",
+        "series": [
+          {
+            "key": "gpu_mem_used",
+            "aggregation": "avg",
+            "displayname": "Used",
+            "seriestype": "area"
+          },
+          {
+            "key": "gpu_mem_total",
+            "aggregation": "avg",
+            "displayname": "Total",
+            "seriestype": "line"
+          },
+          {
+            "key": "gpu_mem_percentage_used",
+            "aggregation": "avg",
+            "displayname": "% used (hidden)",
+            "seriestype": "line",
+            "rightaxis": true,
+            "color": "rgba(0,0,0,0)"
+          }
+        ]
+      },
+      {
+        "group": "GPU Metrics",
+        "title": "Subsystems utilization",
+        "series": [
+          {
+            "key": "gpu_utilization",
+            "aggregation": "avg",
+            "displayname": "GPU",
+            "seriestype": "line"
+          },
+          {
+           "key": "gpu_memory_controller_utilization",
+           "aggregation": "avg",
+           "displayname": "Memory controller",
+           "seriestype": "line"
+          }
+        ]
+      }
+    ],
     "charts": [
       {
-        "group": "GPU metrics",
+        "group": "GPU Metrics",
         "title": "Memory usage",
         "series": [
           {
@@ -162,7 +216,7 @@
         ]
       },
       {
-        "group": "GPU metrics",
+        "group": "GPU Metrics",
         "title": "Subsystems utilization",
         "series": [
           {
@@ -180,7 +234,7 @@
         ]
       },
       {
-        "group": "GPU metrics",
+        "group": "GPU Metrics",
         "title": "Number of processes using the GPU",
         "series": [
           {
@@ -197,18 +251,6 @@
     "displayName": "OneAgent NVML Plugin",
     "properties" : [
       {
-        "key" : "detect_pgis_using_gpu",
-        "displayName": "Automatically detect and monitor all processes that use the GPU",
-        "displayOrder": 1,
-        "displayHint": "true / false"
-      },
-      {
-        "key" : "monitored_pg_names",
-        "displayName": "Names of process groups that should be monitored",
-        "displayOrder": 2,
-        "displayHint": "CUDA app,blockchain_processor[,...]"
-      },
-      {
         "key" : "enable_debug_log",
         "displayName": "Enable debug logging",
         "displayOrder": 3,
@@ -221,16 +263,6 @@
       "key": "enable_debug_log",
       "type": "string",
       "defaultValue": "false"
-    },
-    {
-      "key": "detect_pgis_using_gpu",
-      "type": "string",
-      "defaultValue": "false"
-    },
-    {
-      "key": "monitored_pg_names",
-      "type": "string",
-      "defaultValue": ""
     }
   ]
 }
