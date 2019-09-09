@@ -28,11 +28,11 @@ Device metrics are reported for the HOST entity, while process-specific metrics 
 * Python >= 3.6.
 
 # Plugin configuration
-* `enable_debug_log` - enables debug logging for troubleshooting purposes,
+* `enable_debug_log` - enables debug logging for troubleshooting purposes.
 
 # Reported metrics
 
-The table below outlines metrics collected by the plugin. *Figures 1 and 2* exemplify how metrics are presented on the WebUI.
+The table below outlines metrics collected by the plugin. *Figures 1* and *2* exemplify how metrics are presented on the WebUI.
 
 | Key                               | Entity | Metric description |
 |-----------------------------------|--------|--------------------|
