@@ -1,7 +1,8 @@
 from time import sleep
 from typing import Dict, Tuple, List, KeysView, Any
 
-from pynvml import *
+from pynvml import nvmlDeviceGetMemoryInfo, nvmlDeviceGetUtilizationRates, nvmlDeviceGetComputeRunningProcesses, nvmlDeviceGetGraphicsRunningProcesses, NVMLError, \
+                    nvmlDeviceGetHandleByIndex, nvmlDeviceGetCount, nvmlDeviceGetName, nvmlInit, nvmlShutdown, nvmlSystemGetDriverVersion, nvmlSystemGetNVMLVersion
 from ruxit.api.base_plugin import BasePlugin
 from ruxit.api.data import PluginMeasurement
 from ruxit.api.selectors import ExplicitPgiSelector
@@ -25,7 +26,7 @@ class NVMLPlugin(BasePlugin):
 
     def log_debug(self, message: str) -> None:
         if self.enable_debug_log:
-            self.logger.info("[DEBUG]: " + message)
+            self.logger.info("[NVML DEBUG]: " + message)
 
     def sample_utilization_rates(self, handle: DeviceHandle) -> DeviceUtilizationRates:
         memory = nvmlDeviceGetMemoryInfo(handle)
@@ -132,11 +133,7 @@ class NVMLPlugin(BasePlugin):
                            f"(PGIID={pgi.group_instance_id:02x}, type={pgi.process_type}) is using the GPU")
             monitored_pgis.append(pgi)
 
-        unique_pgis = {}
-        for pgi in monitored_pgis:
-            unique_pgis[pgi.group_instance_id] = pgi
-
-        return unique_pgis
+        return { pgi.group_instance_id: pgi for pgi in monitored_pgis }
 
     def generate_metrics_for_pgis(self, gpu_processes_mem_usage: GPUProcesses, utilization_rates: DeviceUtilizationRates, monitored_pgis: Dict) -> None:
         gpu_processes_count = len(gpu_processes_mem_usage)
