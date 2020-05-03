@@ -20,7 +20,9 @@
   "source": {
     "package": "nvml_extension",
     "className": "NVMLExtension",
-    "install_requires": [ "nvidia-ml-py3>=7.352.0" ],
+    "install_requires": [
+      "nvidia-ml-py3>=7.352.0"
+    ],
     "activation": "Singleton"
   },
   "metrics": [
@@ -127,7 +129,7 @@
         "key": "gpu_utilization",
         "displayname": "GPU",
         "aggregation": "avg",
-		    "mergeaggregation": "avg"
+        "mergeaggregation": "avg"
       },
       {
         "key": "gpu_mem_used",
@@ -181,10 +183,10 @@
             "seriestype": "line"
           },
           {
-           "key": "gpu_memory_controller_utilization",
-           "aggregation": "avg",
-           "displayname": "Memory controller",
-           "seriestype": "line"
+            "key": "gpu_memory_controller_utilization",
+            "aggregation": "avg",
+            "displayname": "Memory controller",
+            "seriestype": "line"
           }
         ]
       },
@@ -246,10 +248,10 @@
             "seriestype": "line"
           },
           {
-           "key": "gpu_memory_controller_utilization",
-           "aggregation": "avg",
-           "displayname": "Memory controller",
-           "seriestype": "line"
+            "key": "gpu_memory_controller_utilization",
+            "aggregation": "avg",
+            "displayname": "Memory controller",
+            "seriestype": "line"
           }
         ]
       },
@@ -269,9 +271,9 @@
   },
   "configUI": {
     "displayName": "OneAgent NVML Extension",
-    "properties" : [
+    "properties": [
       {
-        "key" : "enable_debug_log",
+        "key": "enable_debug_log",
         "displayName": "Enable debug logging",
         "displayOrder": 1
       }
