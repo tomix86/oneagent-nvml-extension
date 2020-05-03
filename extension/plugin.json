@@ -127,10 +127,17 @@
         "key": "gpu_utilization",
         "displayname": "GPU",
         "aggregation": "avg",
-		"mergeaggregation": "avg"
+		    "mergeaggregation": "avg"
       },
       {
         "key": "gpu_mem_used",
+        "displayname": "GPU Memory",
+        "aggregation": "avg",
+        "mergeaggregation": "avg"
+      },
+      {
+        "key": "gpu_mem_used_by_pgi",
+        "entity": "PROCESS_GROUP_INSTANCE",
         "displayname": "GPU Memory",
         "aggregation": "avg",
         "mergeaggregation": "avg"
@@ -178,6 +185,19 @@
            "aggregation": "avg",
            "displayname": "Memory controller",
            "seriestype": "line"
+          }
+        ]
+      },
+      {
+        "group": "GPU Metrics",
+        "title": "Memory usage",
+        "entity": "PROCESS_GROUP_INSTANCE",
+        "series": [
+          {
+            "key": "gpu_mem_used_by_pgi",
+            "displayname": "GPU Memory",
+            "aggregation": "avg",
+            "mergeaggregation": "avg"
           }
         ]
       }
