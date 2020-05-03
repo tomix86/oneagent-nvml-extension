@@ -67,7 +67,7 @@ _Fig 2. PGI metrics reported by the extension_
 Note that although memory usage metrics values are in MiB, we display them as MB on the WebUI since it is the convention for timeseries labelling in Dynatrace.
 
 Internally, the extension collects several data samples and aggregates them before passing them on to the extension execution engine.
-By default, 5 samples in 2 second intervals are collected. This can be customized by modifying `SAMPLES_COUNT` and `SAMPLING_INTERVAL` in [constants.py](plugin/utilities/constants.py).
+By default, 5 samples in 2 second intervals are collected. This can be customized by modifying `SAMPLES_COUNT` and `SAMPLING_INTERVAL` in [constants.py](extension/utilities/constants.py).
 
 Concerning per-PGI memory usage, on Windows this metric won't be available if the card is managed by WDDM driver,
 the card needs to be running in [TCC (WDM)](https://docs.nvidia.com/gameworks/content/developertools/desktop/nsight/tesla_compute_cluster.htm) mode.

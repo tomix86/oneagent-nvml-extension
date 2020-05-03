@@ -1,8 +1,8 @@
 {
   "version": "1.0.0",
-  "name": "custom.python.nvml_plugin",
+  "name": "custom.python.nvml_extension",
   "type": "python",
-  "requiredAgentVersion": "1.175",
+  "requiredAgentVersion": "1.191",
   "entity": "HOST",
   "metricGroup": "gpu.cuda",
   "processTypeNames": [
@@ -18,8 +18,8 @@
     "GO"
   ],
   "source": {
-    "package": "nvml_plugin",
-    "className": "NVMLPlugin",
+    "package": "nvml_extension",
+    "className": "NVMLExtension",
     "install_requires": [ "nvidia-ml-py3>=7.352.0" ],
     "activation": "Singleton"
   },
@@ -248,7 +248,7 @@
     ]
   },
   "configUI": {
-    "displayName": "OneAgent NVML Plugin",
+    "displayName": "OneAgent NVML Extension",
     "properties" : [
       {
         "key" : "enable_debug_log",

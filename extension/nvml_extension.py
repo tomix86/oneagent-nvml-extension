@@ -16,7 +16,7 @@ For documentation see README.md
 """
 
 
-class NVMLPlugin(BasePlugin):
+class NVMLExtension(BasePlugin):
     devices_count: int = 0
     enable_debug_log: bool = False
 
